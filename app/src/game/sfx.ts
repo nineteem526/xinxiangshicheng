@@ -54,6 +54,29 @@ export function playSfx(type: EventType) {
       tone(300, 0.6, "sawtooth", 0.14, 1400);
       tone(1400, 0.4, "sine", 0.1, 200, 0.3);
       break;
+    case "shield_hit":
+      tone(520, 0.1, "triangle", 0.12, 380);
+      break;
+    case "shield_break":
+      tone(700, 0.35, "sawtooth", 0.14, 120);
+      tone(1200, 0.15, "square", 0.08, 300, 0.05);
+      break;
+    case "charge_burst":
+      tone(120, 0.5, "sawtooth", 0.18, 900);
+      tone(900, 0.3, "square", 0.1, 100, 0.25);
+      break;
+    case "phase_open":
+      tone(880, 0.12, "sine", 0.1, 1320);
+      break;
+    case "locked":
+      tone(180, 0.12, "square", 0.08, 120);
+      break;
+    case "combo_hit":
+      tone(420, 0.1, "triangle", 0.13, 640);
+      break;
+    case "combo_break":
+      tone(300, 0.25, "sawtooth", 0.1, 140);
+      break;
     case "special_fail":
       tone(200, 0.15, "square", 0.08, 150);
       break;

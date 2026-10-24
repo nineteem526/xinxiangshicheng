@@ -145,7 +145,8 @@ button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px s
 .rift-layer { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 3; pointer-events: none; }
 .rift-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
 .rift-list li { position: relative; display: flex; justify-content: space-between; gap: 12px; padding: 7px 10px; background: rgba(196,18,47,0.12); border-left: 3px solid var(--red); font-size: 13px; }
-.rift-list li em { font-style: normal; font-size: 12px; color: var(--ink-3); }
+.rift-list li em { font-style: normal; font-size: 12px; color: var(--ink-3); text-align: right; }
+.rift-list li .trait { margin-left: 8px; padding: 1px 6px; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; color: var(--black); background: var(--c); }
 .rift-list li i { position: absolute; left: 0; bottom: 0; height: 2px; background: var(--red-hi); transition: width 0.2s; }
 .rift-list li.hot { background: var(--y); color: var(--black); border-left-color: var(--black); }
 .rift-list li.hot em { color: rgba(10,10,12,0.7); }

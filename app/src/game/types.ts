@@ -15,11 +15,16 @@ export const GESTURE_ACTION: Record<GestureName, string> = {
 
 export const ACCENTS = ["#00f0ff", "#ff2bd6", "#7dff6b", "#ffb300", "#ff4d4d"] as const;
 
+/** How an object fights back. A closed list: the model picks a name, the engine owns the rules. */
+export type Trait = "plain" | "barrier" | "charge" | "phase" | "combo";
+
 /** One real object in the camera frame that the game anchors to. box = [ymin,xmin,ymax,xmax] in 0..1000. */
 export interface Rift {
   object: string;
   fantasyName: string;
   weakness: GestureName;
+  /** Absent means "plain" (older saved levels, single-object mode). */
+  trait?: Trait;
   box: [number, number, number, number];
 }
 
@@ -53,6 +58,13 @@ export type EventType =
   | "special_fail"
   | "rift_sealed"
   | "miss"
+  | "shield_hit"
+  | "shield_break"
+  | "charge_burst"
+  | "phase_open"
+  | "locked"
+  | "combo_hit"
+  | "combo_break"
   | "success"
   | "failure";
 
@@ -64,6 +76,16 @@ export interface GameEvent {
 
 export interface RiftState extends Rift {
   hp: number; // 0..100, sealed at 0
+  trait: Trait;
+  /** barrier: shield left, 0 = broken. Other traits keep it at 0. */
+  barrier: number;
+  /** charge: 0..100, decays while idle. */
+  charge: number;
+  /** phase: ms into the current cycle. The window is open for the first PHASE_OPEN_MS of each period. */
+  phaseAt: number;
+  /** combo: hits in the current chain, and ms left before the chain breaks. */
+  chain: number;
+  chainMs: number;
 }
 
 export interface GameState {

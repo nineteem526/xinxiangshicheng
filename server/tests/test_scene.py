@@ -46,6 +46,18 @@ class SceneT(unittest.TestCase):
             with patch.object(llm, "generate_scene", return_value={**SCENE, **bad}):
                 self.assertFalse(c.post("/api/scene", json={"image": IMG}).json()["ok"], bad)
 
+    def test_trait_is_kept_when_valid_and_defaults_to_plain(self):
+        scene = {**SCENE, "rifts": [{**RIFT, "trait": "barrier"}, {**RIFT, "object": "手机", "trait": "phase"}, {**RIFT, "object": "书", "fantasyName": "书灵"}]}
+        with patch.object(llm, "generate_scene", return_value=scene):
+            lv = c.post("/api/scene", json={"image": IMG}).json()["level"]
+        self.assertEqual([r["trait"] for r in lv["rifts"]], ["barrier", "phase", "plain"])
+
+    def test_unknown_trait_is_rejected_not_silently_downgraded(self):
+        for bad in ("fireball", "BARRIER", "", None, 3, ["barrier"]):
+            scene = {**SCENE, "rifts": [{**RIFT, "trait": bad}]}
+            with patch.object(llm, "generate_scene", return_value=scene):
+                self.assertFalse(c.post("/api/scene", json={"image": IMG}).json()["ok"], bad)
+
     def test_scene_errors(self):
         self.assertFalse(c.post("/api/scene", json={"image": "nope"}).json()["ok"])
         with patch.object(llm, "generate_scene", side_effect=llm.LLMError("模型请求超时")):

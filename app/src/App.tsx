@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useReducer, useRef, useState } from "react";
-import { createInitialState, reducer } from "./game/engine";
+import { createInitialState, keyboardTarget, reducer } from "./game/engine";
 import { captureFrame, requestLevel, requestScene, type LevelResult } from "./game/api";
 import { rectUnderHand } from "./game/rifts";
 import { RiftLayer } from "./ui/RiftLayer";
@@ -7,6 +7,7 @@ import { PRESET_LEVELS } from "./game/levels";
 import { playSfx, setMuted, unlockAudio } from "./game/sfx";
 import { GESTURE_ACTION, GESTURE_LABEL, GESTURES, type EventType, type GestureName, type Level } from "./game/types";
 import { useCamera } from "./vision/useCamera";
+import { TRAIT_HINT, TRAIT_LABEL } from "./game/traits";
 import { Creep } from "./ui/Creep";
 import { LensBar } from "./link/LensBar";
 import { PairPanel } from "./link/PairPanel";
@@ -28,6 +29,13 @@ const EVENT_TEXT: Partial<Record<EventType, string>> = {
   special_fail: "技能能量不足",
   rift_sealed: "入侵点已封印!现实碎裂",
   miss: "把手移到物品上方再攻击",
+  shield_hit: "护盾出现裂痕",
+  shield_break: "护盾碎了,现在可以攻击",
+  charge_burst: "蓄力爆发!",
+  phase_open: "窗口打开,快打",
+  locked: "打不到:先看它的打法",
+  combo_hit: "连击",
+  combo_break: "连击中断,它在恢复",
 };
 
 // What the recogniser sees, in Chinese. Only the first three do anything in the game.
@@ -103,8 +111,7 @@ export default function App() {
         const alive = rs.map((r, i) => (live[i]?.hp > 0 ? r : { x: -9, y: -9, w: 0, h: 0 }));
         riftIndex = rectUnderHand(alive, hand);
       } else {
-        riftIndex = live.findIndex((r) => r.hp > 0);
-        if (riftIndex === -1) riftIndex = undefined;
+        riftIndex = keyboardTarget(live, g);
       }
     }
     dispatch({ type: "GESTURE", gesture: g, riftIndex });
@@ -428,9 +435,12 @@ export default function App() {
             <ul className="rift-list">
               {state.rifts.map((r, i) => (
                 <li key={r.object} className={r.hp <= 0 ? "sealed" : target === i ? "hot" : ""}>
-                  <span>{r.fantasyName}</span>
+                  <span>
+                    {r.fantasyName}
+                    {r.trait !== "plain" && r.hp > 0 && <small className="trait">{TRAIT_LABEL[r.trait]}</small>}
+                  </span>
                   <i style={{ width: `${r.hp}%` }} />
-                  <em>{GESTURE_LABEL[r.weakness]}</em>
+                  <em>{r.hp > 0 && r.trait !== "plain" ? TRAIT_HINT[r.trait] : GESTURE_LABEL[r.weakness]}</em>
                 </li>
               ))}
             </ul>

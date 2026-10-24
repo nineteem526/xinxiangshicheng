@@ -38,6 +38,11 @@ describe("parseLevel · rifts", () => {
     expect(l?.rifts?.length).toBe(2);
     expect(l?.rifts?.[0].box).toEqual([180, 80, 330, 190]);
   });
+  it("keeps a known trait and rejects an unknown one", () => {
+    expect(parseLevel({ ...good, rifts: [{ ...rift, trait: "barrier" }] })?.rifts?.[0].trait).toBe("barrier");
+    expect(parseLevel({ ...good, rifts: [rift] })?.rifts?.[0].trait).toBeUndefined();
+    for (const bad of ["fireball", "", 3, null, ["plain"]]) expect(parseLevel({ ...good, rifts: [{ ...rift, trait: bad }] })).toBeNull();
+  });
   it("rejects bad rifts", () => {
     for (const bad of [[], Array(5).fill(rift), [{ ...rift, box: [0, 0, 10, 10] }], [{ ...rift, box: [0, 0, 2000, 500] }], [{ ...rift, weakness: "Thumb_Up" }], [{ ...rift, box: [1, 2, 3] }]])
       expect(parseLevel({ ...good, rifts: bad })).toBeNull();

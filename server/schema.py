@@ -5,6 +5,8 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator, model_valida
 
 ACCENTS = ("#00f0ff", "#ff2bd6", "#7dff6b", "#ffb300", "#ff4d4d")
 Gesture = Literal["Open_Palm", "Closed_Fist", "Victory"]
+# How an object fights back. The engine owns the rules; the model only picks a name from this list.
+Trait = Literal["plain", "barrier", "charge", "phase", "combo"]
 Accent = Literal["#00f0ff", "#ff2bd6", "#7dff6b", "#ffb300", "#ff4d4d"]
 MAX_RIFTS = 4
 
@@ -47,6 +49,7 @@ class Rift(BaseModel):
     object: str = Field(min_length=1, max_length=12)
     fantasyName: str = Field(min_length=1, max_length=14)
     weakness: Gesture
+    trait: Trait = "plain"  # anything off the list is rejected by validation; absent = plain
     box: list[int] = Field(min_length=4, max_length=4)
 
     @field_validator("object", "fantasyName")

@@ -2,6 +2,8 @@ import { useEffect, useRef, type RefObject } from "react";
 import type { NRect } from "../game/rifts";
 import { toScreen, type Fit } from "../game/rifts";
 import { drawShatter, makeShatter, type Shatter } from "../game/shatter";
+import { isOpen } from "../game/engine";
+import { BARRIER_HP, CHARGE_PER_HIT, COMBO_NEED, COMBO_WINDOW_MS, PHASE_OPEN_MS, PHASE_PERIOD_MS, TRAIT_HINT, TRAIT_LABEL } from "../game/traits";
 import type { GameEvent, RiftState } from "../game/types";
 import { GESTURE_LABEL } from "../game/types";
 import type { HandPos, HoldState } from "../vision/useGestures";
@@ -84,6 +86,106 @@ function drawGlitch(ctx: CanvasRenderingContext2D, v: HTMLVideoElement, sr: NRec
   ctx.restore();
 }
 
+/** Hexagon path centred on (cx, cy). */
+function hex(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number) {
+  ctx.beginPath();
+  for (let k = 0; k < 6; k++) {
+    const a = (Math.PI / 3) * k - Math.PI / 6;
+    const px = cx + Math.cos(a) * r;
+    const py = cy + Math.sin(a) * r;
+    if (k === 0) ctx.moveTo(px, py);
+    else ctx.lineTo(px, py);
+  }
+  ctx.closePath();
+}
+
+/**
+ * The per-object marker. It is drawn ON the real item and encodes the rule at a glance:
+ *   barrier  a blue hexagon shield that cracks as it takes palm hits
+ *   charge   a ring around the object that fills as strikes stack, and drains when you stop
+ *   phase    the frame goes solid and bright while it can be hit, dashed and dim while it is locked
+ *   combo    pips along the bottom that light per hit, with a timer sliver that shrinks
+ * Returns true when the object is currently untouchable (so the tag can say so).
+ */
+function drawTrait(ctx: CanvasRenderingContext2D, r: RiftState, x: number, y: number, w: number, h: number, now: number): boolean {
+  const cx = x + w / 2;
+  const cy = y + h / 2;
+  const rad = Math.max(w, h) * 0.58;
+  ctx.save();
+  if (r.trait === "barrier" && r.barrier > 0) {
+    const left = r.barrier / BARRIER_HP;
+    hex(ctx, cx, cy, rad);
+    ctx.fillStyle = `rgba(31, 159, 184, ${0.1 + 0.16 * left})`;
+    ctx.fill();
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = BLUE;
+    ctx.stroke();
+    // Cracks: more of them the less shield is left.
+    const cracks = Math.round((1 - left) * 4);
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = INK;
+    for (let k = 0; k < cracks; k++) {
+      const a = k * 1.7 + 0.5;
+      ctx.beginPath();
+      ctx.moveTo(cx + Math.cos(a) * rad * 0.15, cy + Math.sin(a) * rad * 0.15);
+      ctx.lineTo(cx + Math.cos(a + 0.2) * rad * 0.55, cy + Math.sin(a + 0.2) * rad * 0.55);
+      ctx.lineTo(cx + Math.cos(a - 0.15) * rad * 0.95, cy + Math.sin(a - 0.15) * rad * 0.95);
+      ctx.stroke();
+    }
+  } else if (r.trait === "charge") {
+    const f = Math.min(1, r.charge / 100);
+    ctx.lineWidth = 6;
+    ctx.strokeStyle = "rgba(236, 232, 218, 0.18)";
+    ctx.beginPath();
+    ctx.arc(cx, cy, rad, 0, Math.PI * 2);
+    ctx.stroke();
+    if (f > 0) {
+      ctx.strokeStyle = f >= 1 - CHARGE_PER_HIT / 100 ? YELLOW : RED_HI;
+      ctx.lineCap = "butt";
+      ctx.beginPath();
+      ctx.arc(cx, cy, rad, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * f);
+      ctx.stroke();
+    }
+  } else if (r.trait === "phase") {
+    const open = isOpen(r);
+    if (open) {
+      // How much of the window is left: a bar under the box.
+      const left = 1 - r.phaseAt / PHASE_OPEN_MS;
+      ctx.fillStyle = YELLOW;
+      ctx.fillRect(x, y + h + 3, w * Math.max(0, left), 4);
+      ctx.strokeStyle = YELLOW;
+      ctx.lineWidth = 4;
+      ctx.strokeRect(x - 5, y - 5, w + 10, h + 10);
+    } else {
+      // Locked: how long until it opens again.
+      const toOpen = PHASE_PERIOD_MS - r.phaseAt;
+      ctx.fillStyle = "rgba(236, 232, 218, 0.28)";
+      ctx.fillRect(x, y + h + 3, w * Math.min(1, 1 - toOpen / (PHASE_PERIOD_MS - PHASE_OPEN_MS)), 4);
+      ctx.strokeStyle = "rgba(236, 232, 218, 0.5)";
+      ctx.setLineDash([8, 8]);
+      ctx.lineDashOffset = -now / 40;
+      ctx.lineWidth = 2;
+      ctx.strokeRect(x - 5, y - 5, w + 10, h + 10);
+      ctx.setLineDash([]);
+    }
+  } else if (r.trait === "combo") {
+    const pip = 14;
+    const gap = 6;
+    const total = COMBO_NEED * pip + (COMBO_NEED - 1) * gap;
+    const px = cx - total / 2;
+    for (let k = 0; k < COMBO_NEED; k++) {
+      ctx.fillStyle = k < r.chain ? YELLOW : "rgba(236, 232, 218, 0.22)";
+      ctx.fillRect(px + k * (pip + gap), y + h + 8, pip, 8);
+    }
+    if (r.chain > 0) {
+      ctx.fillStyle = RED_HI;
+      ctx.fillRect(px, y + h + 19, total * Math.max(0, r.chainMs / COMBO_WINDOW_MS), 3);
+    }
+  }
+  ctx.restore();
+  return (r.trait === "barrier" && r.barrier > 0) || (r.trait === "phase" && !isOpen(r));
+}
+
 function corners(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, L: number) {
   ctx.beginPath();
   ctx.moveTo(x, y + L);
@@ -119,7 +221,7 @@ export function RiftLayer({ videoRef, rifts, rectsRef, lostRef, mirrored, fit, h
   useEffect(() => {
     if (!event || event.id === lastEvent.current) return;
     lastEvent.current = event.id;
-    if (event.riftIndex === undefined || !["fist", "special", "rift_sealed"].includes(event.type)) return;
+    if (event.riftIndex === undefined || !["fist", "special", "rift_sealed", "charge_burst", "combo_hit"].includes(event.type)) return;
     const v = videoRef.current;
     const c = canvasRef.current;
     const r = riftsRef.current[event.riftIndex];
@@ -127,7 +229,7 @@ export function RiftLayer({ videoRef, rifts, rectsRef, lostRef, mirrored, fit, h
     const nr = rectsRef.current?.[event.riftIndex];
     if (!nr) return;
     const sr = toScreen(nr, v.videoWidth, v.videoHeight, c.clientWidth, c.clientHeight, mirrored, fit);
-    const strength = event.type === "rift_sealed" ? 2 : event.type === "special" ? 1.6 : 1;
+    const strength = event.type === "rift_sealed" ? 2 : event.type === "charge_burst" ? 1.8 : event.type === "special" ? 1.6 : 1;
     const s = makeShatter(v, sr, nr, RED_HI, performance.now(), strength, mirrored);
     if (s) shatters.current.push(s);
   }, [event, videoRef, rectsRef, mirrored, fit]);
@@ -176,10 +278,12 @@ export function RiftLayer({ videoRef, rifts, rectsRef, lostRef, mirrored, fit, h
         const frame = sealed ? BLUE : hot ? YELLOW : RED;
         ctx.strokeStyle = frame;
         corners(ctx, x, y, w, h, L);
+        const locked = !sealed && !lost ? drawTrait(ctx, r, x, y, w, h, now) : false;
 
-        // Scanner tag in the 2077 style: a yellow cut-corner plate stuck to the object.
+        // Scanner tag in the 2077 style: a cut-corner plate stuck to the object.
         const nameSize = 15;
-        const title = sealed ? `${r.fantasyName} // 已封印` : r.fantasyName;
+        const traitTag = !sealed && r.trait !== "plain" ? `[${TRAIT_LABEL[r.trait]}] ` : "";
+        const title = sealed ? `${r.fantasyName} // 已封印` : `${traitTag}${r.fantasyName}`;
         ctx.font = `700 ${nameSize}px ${FONT}`;
         const tw = Math.ceil(ctx.measureText(title).width) + 22;
         const th = 26;
@@ -215,7 +319,10 @@ export function RiftLayer({ videoRef, rifts, rectsRef, lostRef, mirrored, fit, h
           ctx.fillStyle = lost ? RED_HI : INK;
           ctx.shadowColor = "rgba(0,0,0,.9)";
           ctx.shadowBlur = 6;
-          const info = lost ? `${r.object}  信号丢失,等待重新锁定` : `${r.object}  弱点 ${GESTURE_LABEL[r.weakness]}`;
+          const rule = r.trait === "plain" ? "" : locked ? "  锁定中" : "";
+          const info = lost
+            ? `${r.object}  信号丢失,等待重新锁定`
+            : `${r.object}  弱点 ${GESTURE_LABEL[r.weakness]}${rule}  ${r.trait === "plain" ? "" : TRAIT_HINT[r.trait]}`;
           ctx.fillText(info, tx, above ? by - 8 : by + 20);
         }
         ctx.restore();

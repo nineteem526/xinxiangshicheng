@@ -1,3 +1,4 @@
+import { isTrait } from "./traits";
 import { ACCENTS, GESTURES, type Level, type Rift } from "./types";
 
 export type LevelResult = { ok: true; level: Level } | { ok: false; error: string };
@@ -13,7 +14,15 @@ function parseRift(x: unknown): Rift | null {
   if (!Array.isArray(b) || b.length !== 4 || !b.every((v) => Number.isInteger(v) && v >= 0 && v <= 1000)) return null;
   const [ymin, xmin, ymax, xmax] = b as number[];
   if (ymax - ymin < 30 || xmax - xmin < 30) return null;
-  return { object: o.object, fantasyName: o.fantasyName, weakness: o.weakness as Rift["weakness"], box: [ymin, xmin, ymax, xmax] };
+  // A missing trait means plain; a present but unknown one is rejected, never silently downgraded.
+  if (o.trait !== undefined && !isTrait(o.trait)) return null;
+  return {
+    object: o.object,
+    fantasyName: o.fantasyName,
+    weakness: o.weakness as Rift["weakness"],
+    ...(o.trait !== undefined ? { trait: o.trait } : {}),
+    box: [ymin, xmin, ymax, xmax],
+  };
 }
 
 /** Second line of defence: re-validate server output before it can reach the engine. */
