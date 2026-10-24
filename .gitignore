@@ -1,0 +1,19 @@
+# Secrets: never commit. Copy server/.env.example to server/.env and fill it in.
+.env
+.env.*
+!.env.example
+
+# Dependencies and build output
+node_modules/
+dist/
+*.tsbuildinfo
+__pycache__/
+*.pyc
+
+# Local tooling
+.claude/
+.vite/
+
+# OS / editor
+Thumbs.db
+.DS_Store

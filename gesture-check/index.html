@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<title>RealityGlitch 手势验证</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<style>
+  :root { color-scheme: dark; }
+  body { margin:0; background:#05070d; color:#cfe; font-family: system-ui, "Microsoft YaHei", sans-serif; }
+  header { padding:12px 16px; display:flex; gap:12px; align-items:center; flex-wrap:wrap; border-bottom:1px solid #123; }
+  select, button { background:#0b1424; color:#cfe; border:1px solid #2a6; padding:6px 10px; border-radius:4px; font-size:14px; }
+  #stage { position:relative; width:min(100%,960px); margin:12px auto; aspect-ratio:16/9; background:#000; }
+  video, canvas { position:absolute; inset:0; width:100%; height:100%; object-fit:contain; }
+  video { transform:scaleX(-1); }
+  canvas { transform:scaleX(-1); }
+  #hud { position:absolute; left:12px; top:12px; font-size:28px; text-shadow:0 0 8px #0f8; }
+  #hud small { display:block; font-size:14px; opacity:.8; }
+  #log { width:min(100%,960px); margin:0 auto 24px; padding:0 8px; font:13px/1.5 Consolas, monospace; white-space:pre-wrap; }
+  .ok { color:#6f6 } .err { color:#f66 }
+</style>
+</head>
+<body>
+<header>
+  <strong>RealityGlitch 手势验证</strong>
+  <label>摄像头 <select id="cam"></select></label>
+  <button id="start">启动</button>
+  <span id="status">未启动</span>
+</header>
+<div id="stage">
+  <video id="v" autoplay playsinline muted></video>
+  <canvas id="c"></canvas>
+  <div id="hud">-<small>等待识别</small></div>
+</div>
+<div id="log"></div>
+
+<script type="module">
+import { GestureRecognizer, FilesetResolver, DrawingUtils } from "./vendor/vision_bundle.mjs";
+
+const $ = id => document.getElementById(id);
+const logEl = $("log");
+const log = (m, c="") => { logEl.insertAdjacentHTML("beforeend", `<div class="${c}">${new Date().toLocaleTimeString()} ${m}</div>`); };
+
+// Gestures we care about, with confidence threshold and stable-time requirement
+const WATCH = { Open_Palm:"防御", Closed_Fist:"攻击", Victory:"特殊技能" };
+const MIN_SCORE = 0.6, STABLE_MS = 350, COOLDOWN_MS = 800;
+
+let recognizer, stream, running = false;
+let cand = null, candSince = 0, lastFire = 0, frames = 0, fpsT = performance.now();
+
+async function listCams() {
+  const devs = (await navigator.mediaDevices.enumerateDevices()).filter(d => d.kind === "videoinput");
+  const sel = $("cam"); sel.innerHTML = "";
+  devs.forEach((d,i) => { const o = document.createElement("option"); o.value = d.deviceId; o.textContent = d.label || `摄像头 ${i+1}`; sel.appendChild(o); });
+  const iriun = devs.find(d => /iriun/i.test(d.label));
+  if (iriun) sel.value = iriun.deviceId;
+  return devs;
+}
+
+async function initModel() {
+  $("status").textContent = "加载模型…";
+  const fileset = await FilesetResolver.forVisionTasks("./vendor/wasm");
+  const opts = (delegate) => ({
+    baseOptions: { modelAssetPath: "./models/gesture_recognizer.task", delegate },
+    runningMode: "VIDEO", numHands: 1
+  });
+  try { recognizer = await GestureRecognizer.createFromOptions(fileset, opts("GPU")); log("模型已加载 (GPU)", "ok"); }
+  catch (e) { log("GPU 不可用,改用 CPU: " + e.message); recognizer = await GestureRecognizer.createFromOptions(fileset, opts("CPU")); log("模型已加载 (CPU)", "ok"); }
+}
+
+async function openCam() {
+  if (stream) stream.getTracks().forEach(t => t.stop());
+  const id = $("cam").value;
+  stream = await navigator.mediaDevices.getUserMedia({
+    video: { deviceId: id ? { exact: id } : undefined, width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false
+  });
+  const v = $("v"); v.srcObject = stream; await v.play();
+  const s = stream.getVideoTracks()[0].getSettings();
+  log(`摄像头: ${stream.getVideoTracks()[0].label} ${s.width}x${s.height}`, "ok");
+}
+
+function loop() {
+  if (!running) return;
+  const v = $("v"), c = $("c"), ctx = c.getContext("2d");
+  if (v.readyState >= 2 && v.videoWidth) {
+    if (c.width !== v.videoWidth) { c.width = v.videoWidth; c.height = v.videoHeight; }
+    const t0 = performance.now();
+    const res = recognizer.recognizeForVideo(v, t0);
+    const dt = performance.now() - t0;
+    ctx.clearRect(0,0,c.width,c.height);
+    let name = "无手", score = 0;
+    if (res.landmarks?.length) {
+      const du = new DrawingUtils(ctx);
+      du.drawConnectors(res.landmarks[0], GestureRecognizer.HAND_CONNECTIONS, { color:"#0f8", lineWidth:3 });
+      du.drawLandmarks(res.landmarks[0], { color:"#f0a", radius:3 });
+      const g = res.gestures?.[0]?.[0];
+      if (g) { name = g.categoryName; score = g.score; }
+    }
+    $("hud").innerHTML = `${name} ${(score*100|0)}%<small>推理 ${dt.toFixed(0)}ms</small>`;
+
+    // stable trigger + cooldown
+    const valid = WATCH[name] && score >= MIN_SCORE ? name : null;
+    const now = performance.now();
+    if (valid !== cand) { cand = valid; candSince = now; }
+    else if (valid && now - candSince >= STABLE_MS && now - lastFire >= COOLDOWN_MS) {
+      lastFire = now; candSince = now + 1e9; // must change gesture or release to refire
+      log(`触发事件 ▶ ${valid} → ${WATCH[valid]} (置信度 ${(score*100|0)}%)`, "ok");
+    }
+    if (!valid) candSince = now;
+    frames++;
+    if (now - fpsT > 1000) { $("status").textContent = `运行中 ${frames} fps`; frames = 0; fpsT = now; }
+  }
+  requestAnimationFrame(loop);
+}
+
+$("start").onclick = async () => {
+  try {
+    running = false;
+    await openCam();
+    await listCams();
+    if (!recognizer) await initModel();
+    running = true; loop();
+  } catch (e) {
+    $("status").textContent = "失败";
+    const hint = e.name === "NotAllowedError" ? "摄像头权限被拒绝,请在地址栏允许" :
+                 e.name === "NotFoundError" ? "没找到摄像头,检查 Iriun 是否已连接" :
+                 e.name === "NotReadableError" ? "摄像头被其他程序占用" : "";
+    log(`${e.name}: ${e.message} ${hint}`, "err");
+  }
+};
+
+if (!isSecureContext) log("当前不是安全上下文,请用 http://localhost 打开", "err");
+try { await listCams(); } catch {}
+$("cam").onchange = () => { if (running) $("start").click(); };
+</script>
+</body>
+</html>

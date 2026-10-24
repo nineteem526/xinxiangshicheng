@@ -1,0 +1,92 @@
+import type { Level } from "./types";
+
+/** Offline preset levels. Shown in the UI as "预设数据" so they are never mistaken for AI output. */
+export const PRESET_LEVELS: Level[] = [
+  {
+    object: "水杯",
+    fantasyName: "量子能量核心",
+    theme: "赛博科幻",
+    mission: "稳定失控的能量核心,在倒计时归零前完成封印",
+    story: "这枚不稳定的量子电池正在吸收现实的能量。你有 60 秒修复它,否则现实将被重置。",
+    duration: 60,
+    difficulty: 2,
+    weakness: "Closed_Fist",
+    accent: "#00f0ff",
+    lines: {
+      start: "检测到现实异常:未知能量核心。",
+      success: "核心已稳定。现实恢复正常。",
+      failure: "能量过载,现实已被重置。",
+    },
+    source: "preset",
+  },
+  {
+    object: "手机",
+    fantasyName: "次元通讯器",
+    theme: "信号入侵",
+    mission: "切断来自异次元的入侵信号",
+    story: "屏幕里传来不属于这个世界的声音。入侵信号每隔几秒就会冲击你的防线。",
+    duration: 60,
+    difficulty: 2,
+    weakness: "Open_Palm",
+    accent: "#ff2bd6",
+    lines: {
+      start: "警告:检测到异次元通讯信号。",
+      success: "信号已切断。",
+      failure: "通讯被劫持,入侵完成。",
+    },
+    source: "preset",
+  },
+  {
+    object: "书本",
+    fantasyName: "禁忌魔法书",
+    theme: "奇幻魔法",
+    mission: "用手势吟唱咒文,重新封印书中的恶灵",
+    story: "书页自行翻动,古老的恶灵正在苏醒。只有完整的封印咒文才能让它重归沉睡。",
+    duration: 60,
+    difficulty: 1,
+    weakness: "Victory",
+    accent: "#ffb300",
+    lines: {
+      start: "禁忌之书已被唤醒。",
+      success: "恶灵重归沉睡。",
+      failure: "封印破碎,恶灵降临。",
+    },
+    source: "preset",
+  },
+  {
+    object: "键盘",
+    fantasyName: "世界控制台",
+    theme: "黑客矩阵",
+    mission: "夺回现实世界的管理员权限",
+    story: "有人在这台控制台上改写了现实规则。杀死入侵进程,在权限被锁死前夺回控制。",
+    duration: 60,
+    difficulty: 3,
+    weakness: "Closed_Fist",
+    accent: "#7dff6b",
+    lines: {
+      start: "管理员权限被篡改。",
+      success: "权限已夺回。",
+      failure: "权限锁定,你被现实抹除。",
+    },
+    source: "preset",
+  },
+  {
+    object: "笔",
+    fantasyName: "光束武器",
+    theme: "星际战斗",
+    mission: "锁定目标并释放光束,击溃入侵者",
+    story: "这支笔在你手中化为光束武器。入侵者正在逼近,抓住弱点集中打击。",
+    duration: 60,
+    difficulty: 1,
+    weakness: "Victory",
+    accent: "#ff4d4d",
+    lines: {
+      start: "武器已激活,目标进入射程。",
+      success: "目标已消灭。",
+      failure: "能量耗尽,武器失效。",
+    },
+    source: "preset",
+  },
+];
+
+export const DEFAULT_LEVEL = PRESET_LEVELS[0];
