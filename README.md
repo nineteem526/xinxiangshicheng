@@ -44,6 +44,13 @@
 - Python 3.11+
 - 一个摄像头(电脑摄像头、Iriun Webcam 等虚拟摄像头,或手机直连)
 
+### 获取代码
+
+```bash
+git clone https://github.com/nineteem526/RealityGlitch.git
+cd RealityGlitch
+```
+
 ### 一键启动
 
 双击根目录的 **`start.bat`**。它会:
