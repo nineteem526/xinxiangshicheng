@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>RealityGlitch · 现实入侵 · 一页作品介绍</title>
+<style>
+  :root {
+    --y: #d9c60c; --c: #1f9fb8; --red: #c4122f; --red-hi: #e0193a; --red-deep: #5a0a18;
+    --ink: #ece8da; --ink-2: rgba(236, 232, 218, 0.74); --ink-3: rgba(236, 232, 218, 0.48);
+    --line: rgba(236, 232, 218, 0.16); --black: #0a0a0c; --plate: #130c0f;
+    font-family: "Bahnschrift", "Segoe UI", "Microsoft YaHei UI", "Microsoft YaHei", system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html { background: #050506; }
+  body { margin: 0; color: var(--ink); background: var(--black); line-height: 1.65; }
+  .page { width: min(1120px, 100%); margin: 0 auto; padding: 36px 40px 28px; position: relative; overflow: hidden; }
+  /* red creeping in from the edges, the same motif as the game */
+  .page::before { content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: radial-gradient(70% 70% at 0% 40%, rgba(196,18,47,.22), transparent 60%),
+                radial-gradient(70% 70% at 100% 60%, rgba(196,18,47,.16), transparent 60%),
+                linear-gradient(180deg, rgba(90,10,24,.4), transparent 14%); }
+  .page > * { position: relative; }
+
+  header { display: grid; grid-template-columns: 1fr auto; gap: 24px; align-items: end; padding-bottom: 18px; border-bottom: 1px solid var(--line); }
+  h1 { margin: 0; font-size: 46px; line-height: 1.05; letter-spacing: .06em; color: var(--ink); text-shadow: 3px 0 var(--red), -3px 0 var(--c); }
+  h1 small { display: block; margin-top: 10px; font-size: 15px; font-weight: 400; letter-spacing: .3em; color: var(--ink-3); text-shadow: none; }
+  .team { text-align: right; font-size: 13px; color: var(--ink-2); line-height: 1.8; }
+  .team b { color: var(--y); font-weight: 600; }
+
+  .tag { margin: 22px 0 6px; padding: 14px 20px; font-size: 22px; font-weight: 600; line-height: 1.5; border-left: 5px solid var(--red); background: rgba(196,18,47,.14); }
+
+  .grid { display: grid; grid-template-columns: 1.1fr 1fr; gap: 22px; margin-top: 20px; }
+  h2 { margin: 0 0 10px; font-size: 14px; font-weight: 700; letter-spacing: .22em; color: var(--c); }
+  section { padding: 16px 18px 14px; background: var(--plate); border-top: 3px solid var(--red);
+    clip-path: polygon(0 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%); }
+  section p { margin: 0 0 8px; font-size: 14px; color: var(--ink-2); }
+  section p:last-child { margin-bottom: 0; }
+  .wide { grid-column: 1 / -1; }
+
+  .steps { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .steps li { padding: 10px 12px; background: rgba(236,232,218,.05); border-left: 3px solid var(--y); font-size: 13px; color: var(--ink-2); }
+  .steps b { display: block; margin-bottom: 2px; font-size: 15px; color: var(--ink); }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { padding: 7px 8px; text-align: left; vertical-align: top; border-top: 1px solid var(--line); }
+  th { width: 4.8em; font-weight: 700; color: var(--y); white-space: nowrap; }
+  td { color: var(--ink-2); }
+
+  .mock { position: relative; aspect-ratio: 16 / 10; background: #1b1714; overflow: hidden; border: 1px solid var(--line); }
+  .mock .table { position: absolute; left: 0; right: 0; bottom: 0; height: 40%; background: #4a3626; }
+  .mock .obj { position: absolute; }
+  .mock .cup { left: 14%; bottom: 20%; width: 17%; height: 36%; background: #9b2a2a; }
+  .mock .phone { left: 44%; bottom: 17%; width: 12%; height: 34%; background: #15161a; border: 2px solid #2c3a55; }
+  .mock .book { left: 66%; bottom: 17%; width: 22%; height: 22%; background: #b79a22; }
+  .box { position: absolute; border: 2px solid var(--red-hi); }
+  .box::after { content: ""; position: absolute; left: -2px; top: -2px; right: -2px; bottom: -2px;
+    background: linear-gradient(var(--red-hi),var(--red-hi)) 0 0/10px 2px no-repeat, linear-gradient(var(--red-hi),var(--red-hi)) 0 0/2px 10px no-repeat,
+                linear-gradient(var(--red-hi),var(--red-hi)) 100% 0/10px 2px no-repeat, linear-gradient(var(--red-hi),var(--red-hi)) 100% 0/2px 10px no-repeat,
+                linear-gradient(var(--red-hi),var(--red-hi)) 0 100%/10px 2px no-repeat, linear-gradient(var(--red-hi),var(--red-hi)) 0 100%/2px 10px no-repeat,
+                linear-gradient(var(--red-hi),var(--red-hi)) 100% 100%/10px 2px no-repeat, linear-gradient(var(--red-hi),var(--red-hi)) 100% 100%/2px 10px no-repeat; }
+  .lab { position: absolute; padding: 1px 7px 2px; font-size: 10px; font-weight: 700; color: var(--ink); background: var(--red); clip-path: polygon(0 0,100% 0,100% 70%,92% 100%,0 100%); white-space: nowrap; }
+  .hand { position: absolute; width: 22px; height: 22px; border: 2px solid var(--y); transform: rotate(45deg); left: 47%; top: 38%; }
+  .hand::after { content: ""; position: absolute; inset: 6px; background: var(--y); }
+  .mock .note { position: absolute; right: 8px; top: 6px; font-size: 10px; color: var(--ink-3); }
+  .mock .creepbar { position: absolute; inset: 0; background: radial-gradient(60% 80% at 0% 50%, rgba(196,18,47,.35), transparent 60%), radial-gradient(60% 80% at 100% 50%, rgba(196,18,47,.28), transparent 60%); }
+  .cap { margin: 6px 0 0; font-size: 11px; color: var(--ink-3); }
+
+  .three { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .three div { padding: 10px 12px; background: rgba(236,232,218,.05); border-left: 3px solid var(--red); font-size: 13px; color: var(--ink-2); }
+  .three b { display: block; margin-bottom: 3px; font-size: 15px; color: var(--ink); }
+
+  ul.plain { margin: 0; padding-left: 18px; font-size: 13px; color: var(--ink-2); }
+  ul.plain li { margin: 2px 0; }
+
+  footer { margin-top: 16px; padding-top: 10px; border-top: 1px solid var(--line); display: flex; justify-content: space-between; gap: 16px; font-size: 11px; color: var(--ink-3); }
+
+  @media (max-width: 860px) { .grid, .steps, .three { grid-template-columns: 1fr; } header { grid-template-columns: 1fr; } .team { text-align: left; } h1 { font-size: 34px; } }
+  @media print {
+    @page { size: A4 landscape; margin: 8mm; }
+    html, body { background: var(--black); -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .page { width: 100%; padding: 4mm 6mm; }
+    h1 { font-size: 34px; }
+    .tag { font-size: 17px; padding: 8px 14px; margin-top: 12px; }
+    .grid { gap: 12px; margin-top: 10px; }
+    section { padding: 10px 14px 8px; }
+    section p, td, ul.plain, .steps li, .three div { font-size: 11.5px; line-height: 1.5; }
+    h2 { font-size: 12px; margin-bottom: 6px; }
+    .mock { aspect-ratio: 16 / 8.5; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <header>
+    <h1>RealityGlitch<small>现实入侵</small></h1>
+    <div class="team">
+      <div><b>队名</b> ____________</div>
+      <div><b>成员</b> ____________ / ____________ / ____________</div>
+      <div><b>赛道</b> ____________</div>
+    </div>
+  </header>
+
+  <div class="tag">把桌上任意一件真实物品,变成一个被入侵的游戏关卡。<br />玩家不用鼠标,用手势把它封印。</div>
+
+  <div class="grid">
+    <section>
+      <h2>问题与场景</h2>
+      <p>游戏和互动内容总被关在屏幕里,和身边的真实物品没有关系。线下展厅、科普教育、桌游和活动现场,缺少一种"拿起什么就能玩什么"的互动方式。</p>
+      <p>RealityGlitch 让现场的物品本身成为关卡:换一张桌子,入侵点、弱点和打法全都不同。</p>
+      <p>它是黑客松原型,验证的是"现场换物品就换玩法"这种体验。</p>
+    </section>
+
+    <section>
+      <h2>怎么玩</h2>
+      <table>
+        <tr><th>扫描</th><td>摄像头对准桌面,点一下,AI 找出物品并分配入侵身份</td></tr>
+        <tr><th>防御</th><td>张开手掌:挡住入侵波;对着护盾型物品则是击碎护盾</td></tr>
+        <tr><th>攻击</th><td>手放在物品上握拳,攻击该物品并积累能量</td></tr>
+        <tr><th>封印</th><td>能量满后比 V,穿透护盾和相位</td></tr>
+      </table>
+      <p style="margin-top:8px">把所有入侵点封印即胜利;现实稳定度归零或倒计时结束即失败。</p>
+    </section>
+
+    <section class="wide">
+      <h2>每件物品打法不同</h2>
+      <ul class="steps">
+        <li><b>护盾</b>握拳打不动,要先用张开手掌连击 3 次打碎护盾</li>
+        <li><b>蓄力</b>单拳只能擦伤,连续出拳蓄满才爆发,停手会漏掉蓄力</li>
+        <li><b>相位</b>大部分时间打不到,窗口周期性打开约 1.7 秒</li>
+      </ul>
+      <ul class="steps" style="margin-top:10px">
+        <li><b>连击</b>限时内连续命中 3 次,断了会回血</li>
+        <li><b>普通</b>直接打</li>
+        <li><b>谁来选</b>AI 只能从这份固定名单里挑,规则和数值由程序执行</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>界面示意</h2>
+      <div class="mock" role="img" aria-label="界面示意图,非真实截图">
+        <div class="table"></div>
+        <div class="obj cup"></div><div class="obj phone"></div><div class="obj book"></div>
+        <div class="creepbar"></div>
+        <div class="box" style="left:12%;bottom:18%;width:21%;height:42%"></div>
+        <div class="lab" style="left:12%;bottom:62%">[蓄力] 熔火炎息杯</div>
+        <div class="box" style="left:42%;bottom:15%;width:16%;height:38%"></div>
+        <div class="lab" style="left:42%;bottom:55%">[相位] 次元通讯器</div>
+        <div class="box" style="left:64%;bottom:15%;width:26%;height:26%"></div>
+        <div class="lab" style="left:64%;bottom:43%">[护盾] 禁忌魔法书</div>
+        <div class="hand"></div>
+        <div class="note">示意图</div>
+      </div>
+      <p class="cap">纯 CSS 绘制的示意,不是真实截图。红框跟随真实物品移动。</p>
+    </section>
+
+    <section>
+      <h2>三个创新点</h2>
+      <div class="three" style="grid-template-columns:1fr">
+        <div><b>现实就是关卡</b>不是预设几件物品,是现场换什么就玩什么,取景框贴在物品上并跟着它走。</div>
+        <div><b>手就是控制器</b>摄像头实时识别手势,手放在哪件物品上就作用于哪件;视频不出本机。</div>
+        <div><b>AI 可控</b>模型只生成内容,字段严格校验,胜负和伤害由程序判定,断网也能玩。</div>
+      </div>
+    </section>
+
+    <section class="wide">
+      <h2>技术与可靠性</h2>
+      <div class="three">
+        <div><b>本机实时</b>MediaPipe 手势识别与物品跟踪都在浏览器里运行,模型文件本地加载。只有点击扫描时才发送一帧画面。</div>
+        <div><b>两道校验</b>后端 pydantic 校验加前端再校验。越界值、多余字段、不在名单里的打法一律拒绝,不会悄悄降级。</div>
+        <div><b>层层兜底</b>模型失败回退预设关卡并标注来源;手势不灵可用键盘;手机直连连不上可用普通摄像头。</div>
+      </div>
+      <p style="margin-top:10px">React · TypeScript · Vite · MediaPipe · WebRTC · Canvas 2D · FastAPI · pydantic。前端 84 个、后端 21 个自动化测试。手机可经 WebRTC 直连电脑当摄像头,后端仅绑定本机,对手机只开放配对接口。</p>
+    </section>
+
+    <section>
+      <h2>已完成</h2>
+      <ul class="plain">
+        <li>摄像头接入、手势识别、60 秒完整游戏循环</li>
+        <li>AI 扫描桌面并生成多物品关卡</li>
+        <li>物品跟踪、五种打法、碎裂效果与音效</li>
+        <li>手机直连、倍率与镜头切换</li>
+        <li>预设、手动输入、AI 三种来源如实标注</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>诚实的局限</h2>
+      <ul class="plain">
+        <li>一次扫描约 7 到 20 秒</li>
+        <li>物品名偶尔认错,不影响玩法</li>
+        <li>手势受光线和距离影响</li>
+        <li>手机直连只在有限设备上测过</li>
+        <li>数值手感还在调,未接入机器人</li>
+      </ul>
+    </section>
+  </div>
+
+  <footer>
+    <span>仓库:____________________________</span>
+    <span>运行:双击 start.bat,打开 https://localhost:5173。详见 README.md</span>
+  </footer>
+</div>
+</body>
+</html>

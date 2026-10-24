@@ -17,3 +17,6 @@ __pycache__/
 # OS / editor
 Thumbs.db
 .DS_Store
+
+# Local assistant instructions (outdated, not part of the project)
+CLAUDE.md
