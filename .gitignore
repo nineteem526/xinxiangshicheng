@@ -20,3 +20,6 @@ Thumbs.db
 
 # Local assistant instructions (outdated, not part of the project)
 CLAUDE.md
+
+# Local runtime logs
+*.log
